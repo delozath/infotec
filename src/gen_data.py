@@ -24,21 +24,19 @@ def two_bivariate_normals( **params ):
 
 
 def two_univariate_normals( **params ):
-    pdb.set_trace()
     x = np.random.normal( params['m1'], params['s1'], params['n1'] )
+    x = np.concatenate( (x, np.random.normal( params['m2'], 
+                                              params['s2'],
+                                              params['n2'] )   )    )
+    y = -np.ones(n1+n2)
+    pdb.set_trace()
 
 # TODO: Agregar los otros generadores de datos del jupyter notebook
 
 
-def main(fname, **params ):
-    
-    if params['case']=='two_bivariate_normals':
-        data = two_bivariate_normals( **params )
-    
-    elif  params['case']=='two_univariate_normals':
-        data = two_univariate_normals( **params )
-    
-    
+def main(fname, func, **params ):
+    data = func( **params )
+        
     sns.scatterplot( x='X_1', y='X_2', hue='Y', data=data,
                       palette=['b','k'] )
     
@@ -61,17 +59,19 @@ def setup(fname,case):
         N_C2 = 300
         
         main( fname+'TWO BIV NORMALS.csv',
+              two_bivariate_normals,
                 case=case,
                 M1=M_C1, S1=S_C1, N1=N_C1,
                 M2=M_C2, S2=S_C2, N2=N_C2 )
     
-    elif case=='two_bivariate_normals':
+    elif case=='two_univariate_normals':
         m1,s1,n1 = 1, 1  , 30
         m2,s2,n2 = 2, 1.5, 30
         
         main( fname+'TWO UNIV NORMALS.csv',
-              m1=m1, s1=s1, n1=n1,
-              m2=m2, s2=s2, n2=n2  )
+                two_univariate_normals,
+                m1=m1, s1=s1, n1=n1,
+                m2=m2, s2=s2, n2=n2  )
         
 
 
@@ -80,9 +80,4 @@ if __name__ == '__main__':
     prefix = 'CNIB 2020 '
     case   = 'two_univariate_normals'
     
-    #Two univariate normals
     setup( PATH+prefix, case=case )
-    
-    
-    #Two bivariate normal
-    #setup( PATH+prefix, case=case )
