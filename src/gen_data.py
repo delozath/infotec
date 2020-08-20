@@ -22,37 +22,67 @@ def two_bivariate_normals( **params ):
     data = pd.DataFrame(data,columns=['X_1','X_2','Y'])
     return data.copy()
 
+
+def two_univariate_normals( **params ):
+    pdb.set_trace()
+    x = np.random.normal( params['m1'], params['s1'], params['n1'] )
+
 # TODO: Agregar los otros generadores de datos del jupyter notebook
 
+
 def main(fname, **params ):
-    data = two_bivariate_normals( **params )
+    
+    if params['case']=='two_bivariate_normals':
+        data = two_bivariate_normals( **params )
+    
+    elif  params['case']=='two_univariate_normals':
+        data = two_univariate_normals( **params )
+    
+    
     sns.scatterplot( x='X_1', y='X_2', hue='Y', data=data,
                       palette=['b','k'] )
     
-    pdb.set_trace()
+    plt.show()
     data.to_csv(fname)   
     pdb.set_trace()
 
-"""
-ax.scatter(xs, ys, zs, marker=m)
 
+def setup(fname,case):
+    if case=='two_bivariate_normals':
+        M_C1 = np.array([    1.0,  0.0 ])
+        S_C1 = np.array([ [  1.0,  0.0 ],
+                          [  0.0,  1.0 ] ])
+        
+        M_C2 = np.array([   -3.0,  2.0 ])
+        S_C2 = np.array([ [  2.0, -0.5 ],
+                          [ -0.5,  2.0 ] ])
+        
+        N_C1 = 300
+        N_C2 = 300
+        
+        main( fname+'TWO BIV NORMALS.csv',
+                case=case,
+                M1=M_C1, S1=S_C1, N1=N_C1,
+                M2=M_C2, S2=S_C2, N2=N_C2 )
+    
+    elif case=='two_bivariate_normals':
+        m1,s1,n1 = 1, 1  , 30
+        m2,s2,n2 = 2, 1.5, 30
+        
+        main( fname+'TWO UNIV NORMALS.csv',
+              m1=m1, s1=s1, n1=n1,
+              m2=m2, s2=s2, n2=n2  )
+        
 
-"""
 
 if __name__ == '__main__':
-    M_C1 = np.array([    1.0,  0.0 ])
-    S_C1 = np.array([ [  1.0,  0.0 ],
-                      [  0.0,  1.0 ] ])
+    PATH   = '/home/omarpr/git/machine_learning/data/'
+    prefix = 'CNIB 2020 '
+    case   = 'two_univariate_normals'
     
-    M_C2 = np.array([   -3.0,  2.0 ])
-    S_C2 = np.array([ [  2.0, -0.5 ],
-                      [ -0.5,  2.0 ] ])
+    #Two univariate normals
+    setup( PATH+prefix, case=case )
     
-    N_C1 = 300
-    N_C2 = 300
     
-    PATH  = '/home/omarpr/git/machine_learning/data/'
-    fname = 'two_bivariate_normals.csv'
-    main( PATH+fname,
-          M1=M_C1, S1=S_C1, N1=N_C1,
-          M2=M_C2, S2=S_C2, N2=N_C2 )
+    #Two bivariate normal
+    #setup( PATH+prefix, case=case )
