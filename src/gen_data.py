@@ -28,18 +28,30 @@ def two_univariate_normals( **params ):
     x = np.concatenate( (x, np.random.normal( params['m2'], 
                                               params['s2'],
                                               params['n2'] )   )    )
-    y = -np.ones(n1+n2)
-    pdb.set_trace()
+    y                  = -np.ones( params['n1']+params['n2'] )
+    y[ :params['n1'] ] = 1
+    
+    data = np.hstack( (x[:,np.newaxis],y[:,np.newaxis]) )
+    data = pd.DataFrame( data, columns=['X','Y'] )
+    
+    return data.copy()
 
 # TODO: Agregar los otros generadores de datos del jupyter notebook
 
 
 def main(fname, func, **params ):
     data = func( **params )
-        
-    sns.scatterplot( x='X_1', y='X_2', hue='Y', data=data,
-                      palette=['b','k'] )
+    D    = data.shape[-1]
     
+    plt.figure( figsize=(12,5) )
+    if D==3:
+        sns.scatterplot( x='X_1', y='X_2', hue='Y', data=data,
+                          palette=['b','k'] )
+    elif D==2:
+        sns.scatterplot( x='X', y='Y', hue='Y', data=data,
+                          palette=['b','k'] )
+    
+    plt.grid(True)
     plt.show()
     data.to_csv(fname)   
     pdb.set_trace()
@@ -65,8 +77,8 @@ def setup(fname,case):
                 M2=M_C2, S2=S_C2, N2=N_C2 )
     
     elif case=='two_univariate_normals':
-        m1,s1,n1 = 1, 1  , 30
-        m2,s2,n2 = 2, 1.5, 30
+        m1,s1,n1 = 1, .7  , 30
+        m2,s2,n2 = 3, .5, 30
         
         main( fname+'TWO UNIV NORMALS.csv',
                 two_univariate_normals,
