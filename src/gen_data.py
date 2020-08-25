@@ -53,7 +53,7 @@ def main(fname, func, **params ):
     
     plt.grid(True)
     plt.show()
-    data.to_csv(fname)   
+    data.to_csv(fname,index=False)   
     pdb.set_trace()
 
 
@@ -90,6 +90,6 @@ def setup(fname,case):
 if __name__ == '__main__':
     PATH   = '/home/omarpr/git/machine_learning/data/'
     prefix = 'CNIB 2020 '
-    case   = 'two_univariate_normals'
+    case   = 'two_bivariate_normals'
     
     setup( PATH+prefix, case=case )

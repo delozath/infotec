@@ -5,7 +5,19 @@ import pandas  as pd
 import seaborn as sns; sns.set(style="ticks", palette="pastel")
 
 from matplotlib           import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D 
+from mpl_toolkits.mplot3d import Axes3D
+
+plt.style.use({  'figure.figsize'    :(12,6),
+                 'axes.titlesize'    :20,
+                 'axes.titleweight'  :True,
+                 'lines.markersize'  :10,
+                 'axes.grid'         :True,
+                 'axes.labelsize'    :16,
+                 'xtick.labelsize'   :14,
+                 'xtick.major.width' :True,
+                 'ytick.labelsize'   :14,
+                 'ytick.major.width' :True, 
+                 'lines.linewidth'   :2.5   })
 
 def pseudo_inv (X: np.array, Y: np.array)->np.array:
     """
@@ -37,7 +49,46 @@ def extend_x(X: np.array)->np.array:
     
     return np.concatenate( (X,ones), axis=-1 )
 
+def motivation( data,experiment ):
+    
+    
+    y = np.zeros( data.shape[0] )
+    plt.figure( experiment.replace(', ','-') )
+    sns.scatterplot( x='X', y=y, hue='Y', data=data,
+                      palette=['tomato','forestgreen'],
+                      alpha=.8)
+    plt.title(experiment)
+    
+    plt.figure( experiment.replace(', ','-')+' etiquetas' )
+    sns.scatterplot( x='X', y='Y', hue='Y', data=data,
+                      palette=['tomato','forestgreen'],
+                      alpha=.8)
+    plt.title(experiment +' etiquetas')
+    
+    plt.show()
+    
+
+def planes(data,experiment,nlines,bias):
+    xline  = np.linspace( 1.2*data['X'].min(), 1.2*data['X'].max(), 100 )[np.newaxis]
+    
+    pdb.set_trace()
+    W      = np.linspace(-.75,.75,nlines)[:,np.newaxis]
+    B      = -bias*W
+    ylines = np.dot(W,xline)
+        
+    plt.figure( experiment.replace(', ','-')+' etiquetas' )
+    sns.scatterplot( x='X', y='Y', hue='Y', data=data,
+                      palette=['tomato','forestgreen'],
+                      alpha=.8)
+    plt.plot( np.tile( xline,(nlines,1) ).T, ylines.T+B.T)
+    plt.title(experiment + ' etiquetas')
+    
+    plt.show()
+
 def main( **params ):
+    data = pd.read_csv( params['fname_uninormals'] )
+    #motivation(data,'Un Rasgo, Dos clases')
+    planes    (data,'Un Rasgo, Dos clases',5,2.5)
     
     """
     data = pd.read_csv( params['fname'] )
@@ -76,11 +127,8 @@ def main( **params ):
 
    """
 
-
-"""
-
 if __name__ == '__main__':
-    PATH  = '/home/omarpr/git/machine_learning/data/'
-    fname = 'two_bivariate_normals.csv'
+    PATH             = '/home/omarpr/git/machine_learning/data/'
+    fname_uninormals = 'CNIB 2020 TWO UNIV NORMALS.csv'
     
-    main( fname=PATH+fname  )
+    main( fname_uninormals=PATH+fname_uninormals  )
