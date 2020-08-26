@@ -93,6 +93,7 @@ def planes(data,experiment,lines):
 
 def planes_predict(data,experiment,lines):
     title    = experiment.replace(', ','-') + u' planos predicción'
+    
     x = data['X'].values[np.newaxis]
     y = np.dot( lines[:,0:1],x ).T
     y = y + lines[:,1]
@@ -116,10 +117,32 @@ def threshold(data,thre=0.0,comparison=0):
         l = data > thre
     else:
         l = data < thre
-    
-    
     return (-2*l+1).copy()
+
+def empiric_decision(X,Y,lines,thre,signs):
+    y = np.dot( X,lines[:,0:1].T )
+    y = y + lines[:,1]
     
+    L = list(  map( lambda z: threshold(z[0],z[1],z[2]), zip( y.T,thre,signs )  )  )
+    L = np.array(L).T
+    
+    plt.pcolormesh(L==-Y,edgecolors='k', linewidth=.5,cmap='cool')
+    plt.xticks(np.arange(L.shape[1])+.5,['Modelo 1','Modelo 2','Modelo 3','Modelo 4','Modelo 5'], fontsize=10)
+    
+    ax = plt.gca()
+    #ax.xticklabels()
+    ax.set_aspect(.05)
+    plt.gca().invert_yaxis()
+    plt.show()
+    print(np.array(Y).T)
+
+def pseudoinverse_train(X,Y,N):
+    index = np.arange( X.shape[1] )
+    np.random.shuffle(index)
+    
+    pdb.set_trace()
+    
+    X_Train = X.T[ index[:] ]
 
 def main( **params ):
     lines = np.array([ [-0.2  , 0.9  ],
@@ -138,25 +161,14 @@ def main( **params ):
     #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [3] ])
     #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [4] ])
     
-    x = data['X'].values[np.newaxis]
-    y = np.dot( lines[:,0:1],x ).T
-    y = y + lines[:,1]
+    X     = data['X'].values[:,np.newaxis]
+    Y     = data['Y'].values[:,np.newaxis]
     
-    Y = list(  map( lambda z: threshold(z[0],z[1],z[2]), zip( y.T,[.5, .1, .3, -0.15, 0], [0,0,0,-1,-1] )  )  )
-    Y = np.array(Y).T
+    empiric_decision(X,Y,lines,[.5, .1, .3, -0.15, 0], [0,0,0,-1,-1])
     
-    plt.pcolormesh(Y==-data['Y'].values[:,np.newaxis],edgecolors='k', linewidth=.5,cmap='cool')
-    plt.xticks(np.arange(Y.shape[1])+.5,['Modelo 1','Modelo 2','Modelo 3','Modelo 4','Modelo 5'], fontsize=10)
     
-    ax = plt.gca()
-    #ax.xticklabels()
-    ax.set_aspect(.05)
-    plt.gca().invert_yaxis()
-    plt.show()
-    print(np.array(Y).T)
     pdb.set_trace()
-    ecs = ["$$y(x) = %.1fx %+ .1f$$"%(tuple(i)) for i in lines]
-    for e in ecs:
+    pseudoinverse_train(X,Y)
         print(e)
     
     
