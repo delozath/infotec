@@ -49,46 +49,117 @@ def extend_x(X: np.array)->np.array:
     
     return np.concatenate( (X,ones), axis=-1 )
 
+def plot_varrows( x,y1,y2,alpha=1,color='black' ):
+    for i,j,k in zip( x,y1,y2 ):
+        plt.arrow( i,j, 0,k-j,alpha=alpha,color=color )
+
 def motivation( data,experiment ):
+    title = experiment.replace(', ','-')
+    y     = np.zeros( data.shape[0] )
     
-    
-    y = np.zeros( data.shape[0] )
-    plt.figure( experiment.replace(', ','-') )
+    plt.figure( title )
     sns.scatterplot( x='X', y=y, hue='Y', data=data,
                       palette=['tomato','forestgreen'],
                       alpha=.8)
-    plt.title(experiment)
+    plt.title(title)
     
-    plt.figure( experiment.replace(', ','-')+' etiquetas' )
+    plt.figure( title + ' etiquetas' )
     sns.scatterplot( x='X', y='Y', hue='Y', data=data,
                       palette=['tomato','forestgreen'],
                       alpha=.8)
-    plt.title(experiment +' etiquetas')
+    plt.title( title +' etiquetas')
     
     plt.show()
     
 
-def planes(data,experiment,nlines,bias):
-    xline  = np.linspace( 1.2*data['X'].min(), 1.2*data['X'].max(), 100 )[np.newaxis]
+def planes(data,experiment,lines):
+    title    = experiment.replace(', ','-') + u' planos separación'
+    nlines   = lines.shape[0]
+    min, max = data['X'].min(), data['X'].max()
+    min, max = min + 2*min , max + 0.1*max
     
-    pdb.set_trace()
-    W      = np.linspace(-.75,.75,nlines)[:,np.newaxis]
-    B      = -bias*W
-    ylines = np.dot(W,xline)
-        
-    plt.figure( experiment.replace(', ','-')+' etiquetas' )
+    xline  = np.linspace( min,max,100 )[np.newaxis]
+    ylines = np.dot( lines[:,0:1],xline ).T
+    ylines = ylines + lines[:,1]
+    
+    plt.figure( title )
     sns.scatterplot( x='X', y='Y', hue='Y', data=data,
                       palette=['tomato','forestgreen'],
                       alpha=.8)
-    plt.plot( np.tile( xline,(nlines,1) ).T, ylines.T+B.T)
-    plt.title(experiment + ' etiquetas')
+    plt.plot( np.tile( xline,(nlines,1) ).T, ylines)
+    plt.title(title)
     
     plt.show()
+
+def planes_predict(data,experiment,lines):
+    title    = experiment.replace(', ','-') + u' planos predicción'
+    x = data['X'].values[np.newaxis]
+    y = np.dot( lines[:,0:1],x ).T
+    y = y + lines[:,1]
+    
+    plt.figure( title )
+    plot_varrows( x.ravel(),
+                  data['Y'].values,    
+                  y[:,0],
+                  alpha=1,color='black' )
+    
+    sns.scatterplot( x='X', y='Y', hue='Y', data=data,
+                      palette=['tomato','forestgreen'],
+                      alpha=.8)
+    plt.plot( x.T, y)
+    plt.title(title)
+    
+    plt.show()
+
+def threshold(data,thre=0.0,comparison=0):
+    if comparison==0:
+        l = data > thre
+    else:
+        l = data < thre
+    
+    
+    return (-2*l+1).copy()
+    
 
 def main( **params ):
-    data = pd.read_csv( params['fname_uninormals'] )
-    #motivation(data,'Un Rasgo, Dos clases')
-    planes    (data,'Un Rasgo, Dos clases',5,2.5)
+    lines = np.array([ [-0.2  , 0.9  ],
+                       [-0.1  , 0.3  ],
+                       [ 0.0  , 0.3  ],
+                       [ 0.1  ,-0.3  ],
+                       [ 0.4  ,-0.8  ] ])                   
+    data  = pd.read_csv( params['fname_uninormals'] )
+    
+    #motivation    (data,'Un Rasgo, Dos clases')
+    #planes        (data,'Un Rasgo, Dos clases',lines)
+    #planes        (data,'Un Rasgo, Dos clases',lines[ [0,-1] ])
+    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [0] ])
+    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [1] ])
+    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [2] ])
+    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [3] ])
+    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [4] ])
+    
+    x = data['X'].values[np.newaxis]
+    y = np.dot( lines[:,0:1],x ).T
+    y = y + lines[:,1]
+    
+    Y = list(  map( lambda z: threshold(z[0],z[1],z[2]), zip( y.T,[.5, .1, .3, -0.15, 0], [0,0,0,-1,-1] )  )  )
+    Y = np.array(Y).T
+    
+    plt.pcolormesh(Y==-data['Y'].values[:,np.newaxis],edgecolors='k', linewidth=.5,cmap='cool')
+    plt.xticks(np.arange(Y.shape[1])+.5,['Modelo 1','Modelo 2','Modelo 3','Modelo 4','Modelo 5'], fontsize=10)
+    
+    ax = plt.gca()
+    #ax.xticklabels()
+    ax.set_aspect(.05)
+    plt.gca().invert_yaxis()
+    plt.show()
+    print(np.array(Y).T)
+    pdb.set_trace()
+    ecs = ["$$y(x) = %.1fx %+ .1f$$"%(tuple(i)) for i in lines]
+    for e in ecs:
+        print(e)
+    
+    
     
     """
     data = pd.read_csv( params['fname'] )
