@@ -19,7 +19,7 @@ plt.style.use({  'figure.figsize'    :(12,6),
                  'ytick.major.width' :True, 
                  'lines.linewidth'   :2.5   })
 
-def c->np.array:
+def pseudo_inv (X: np.array, Y: np.array)->np.array:
     """
       Compute the pseudoinverse matrix for regression/classification
         -> pinv = (X^T X)^-1 X^T y
@@ -114,7 +114,7 @@ def planes_predict(data,experiment,lines):
 
 def threshold(data,thre=0.0,comparison=0):
     if comparison==0:
-        l = data > thre
+        l = data >= thre
     else:
         l = data < thre
     return (-2*l+1).copy()
@@ -127,7 +127,9 @@ def empiric_decision(X,Y,lines,thre,signs):
     L = np.array(L).T
     
     plt.pcolormesh(L==-Y,edgecolors='k', linewidth=.5,cmap='cool')
-    plt.xticks(np.arange(L.shape[1])+.5,['Modelo 1','Modelo 2','Modelo 3','Modelo 4','Modelo 5'], fontsize=10)
+        
+    index = np.arange( L.shape[1] )
+    plt.xticks(  index +.5, [ "Modelo-%d"%i for i in index ], fontsize=10  )
     
     ax = plt.gca()
     #ax.xticklabels()
@@ -138,7 +140,7 @@ def empiric_decision(X,Y,lines,thre,signs):
 
 def pseudoinverse_train(X,Y,N):
     X_ext = extend_x(X)
-    W     = pseudo_inv(X, Y)
+    W     = pseudo_inv(X_ext, Y)
     
     return W.copy()
 
@@ -150,78 +152,43 @@ def main( **params ):
                        [ 0.4  ,-0.8  ] ])                   
     data  = pd.read_csv( params['fname_uninormals'] )
     
-    #motivation    (data,'Un Rasgo, Dos clases')
-    #planes        (data,'Un Rasgo, Dos clases',lines)
-    #planes        (data,'Un Rasgo, Dos clases',lines[ [0,-1] ])
-    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [0] ])
-    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [1] ])
-    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [2] ])
-    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [3] ])
-    #planes_predict( data, 'Un Rasgo, Dos clases', lines[ [4] ])
+    motivation    (data,'Un Rasgo, Dos clases')
+    planes        (data,'Un Rasgo, Dos clases',lines)
+    planes        (data,'Un Rasgo, Dos clases',lines[ [0,-1] ])
+    planes_predict( data, 'Un Rasgo, Dos clases', lines[ [0] ])
+    planes_predict( data, 'Un Rasgo, Dos clases', lines[ [1] ])
+    planes_predict( data, 'Un Rasgo, Dos clases', lines[ [2] ])
+    planes_predict( data, 'Un Rasgo, Dos clases', lines[ [3] ])
+    planes_predict( data, 'Un Rasgo, Dos clases', lines[ [4] ])
     
-    X     = data['X'].values[:,np.newaxis]
-    Y     = data['Y'].values[:,np.newaxis]
+    thre, sign = [.5, .1, .3, -0.15, 0], [0,0,0,-1,-1]
+    X          = data['X'].values[:,np.newaxis]
+    Y          = data['Y'].values[:,np.newaxis]
     
-    #empiric_decision(X,Y,lines,[.5, .1, .3, -0.15, 0], [0,0,0,-1,-1])
+    empiric_decision(X,Y,lines,thre, sign)
     
     N     = 40
     P     = X.shape[0]-N
     index = np.arange( X.shape[0] ); np.random.shuffle(index)
     
-    X_Train, Y_Train = X_ext[ index[  :N] ], Y[ index[  :N] ]
-    X_Test , Y_Test  = Y    [ index[-P: ] ], Y[ index[-P: ] ]
+    X_Train, Y_Train = X[ index[  :N] ], Y[ index[  :N] ]
+    X_Test , Y_Test  = X[ index[-P: ] ], Y[ index[-P: ] ]
     
     W = pseudoinverse_train(X,Y,N)
+    empiric_decision( X,Y, 
+                        np.concatenate( (lines,W.T) ), 
+                        thre + [0]                   ,
+                        sign + [0]
+                    )
+    
+    planes_predict( data, 'Un Rasgo, Dos clases', W.T )
     
     pdb.set_trace()
-    
-    
-    
-    
     
     ecs = ["$$y(x) = %.1fx %+ .1f$$"%(tuple(i)) for i in lines]
     for e in ecs:
         print(e)
     
-    
-    
-    """
-    data = pd.read_csv( params['fname'] )
-    
-    sns.scatterplot( x='X_1', y='X_2', hue='Y', data=data,
-                      palette=['b','k'] )
-    
-    fig = plt.figure()
-    ax  = fig.add_subplot(111, projection='3d')
-    
-    mask = data['Y'] == -1
-    ax.scatter( data['X_1'][ mask], data['X_2'][ mask], data['Y'][ mask], color='b' )
-    ax.scatter( data['X_1'][~mask], data['X_2'][~mask], data['Y'][~mask], color='k' )
-    
-    ax.view_init(azim=-90, elev=90)
-    ax.set_xlabel('X_1')
-    ax.set_ylabel('X_2')
-    ax.set_zlabel('Y')
-    
-    point  = np.array([1, 0, -1])
-    normal = np.array([1, -1, 2])
-    
-    d = -point.dot(normal)
-    
-    xx, yy = np.meshgrid( np.linspace( data['X_1'].min(),data['X_1'].max(),15 ),
-                          np.linspace( data['X_2'].min(),data['X_2'].max(),15 )  )
-    
-    z = (-normal[0] * xx - normal[1] * yy - d) / normal[2]
-    
-    
-    ax.plot_surface( xx, yy, z, cmap='inferno', facecolors=plt.cm.inferno(  (z - z.min() )/( z-z.min() ).max()  ), alpha=.4 )
-
-    plt.show()
-    
-    pdb.set_trace()
-
-   """
-
 if __name__ == '__main__':
     PATH             = '/home/omarpr/git/machine_learning/data/'
     fname_uninormals = 'CNIB 2020 TWO UNIV NORMALS.csv'
