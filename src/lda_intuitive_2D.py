@@ -59,13 +59,13 @@ def motivation( data,experiment ):
     
     plt.figure( title )
     sns.scatterplot( x='X', y=y, hue='Y', data=data,
-                      palette=['tomato','forestgreen'],
+                      palette=['forestgreen','darkblue'],
                       alpha=.8)
     plt.title(title)
     
     plt.figure( title + ' etiquetas' )
     sns.scatterplot( x='X', y='Y', hue='Y', data=data,
-                      palette=['tomato','forestgreen'],
+                      palette=['forestgreen','darkblue'],
                       alpha=.8)
     plt.title( title +' etiquetas')
     
@@ -84,7 +84,7 @@ def planes(data,experiment,lines):
     
     plt.figure( title )
     sns.scatterplot( x='X', y='Y', hue='Y', data=data,
-                      palette=['tomato','forestgreen'],
+                      palette=['forestgreen','darkblue'],
                       alpha=.8)
     plt.plot( np.tile( xline,(nlines,1) ).T, ylines)
     plt.title(title)
@@ -105,7 +105,7 @@ def planes_predict(data,experiment,lines):
                   alpha=1,color='black' )
     
     sns.scatterplot( x='X', y='Y', hue='Y', data=data,
-                      palette=['tomato','forestgreen'],
+                      palette=['forestgreen','darkblue'],
                       alpha=.8)
     plt.plot( x.T, y)
     plt.title(title)
@@ -183,14 +183,54 @@ def main( **params ):
     
     planes_predict( data, 'Un Rasgo, Dos clases', W.T )
     
-    pdb.set_trace()
-    
     ecs = ["$$y(x) = %.1fx %+ .1f$$"%(tuple(i)) for i in lines]
     for e in ecs:
         print(e)
     
+    pdb.set_trace()
+
+def _3d(**params):
+    data = pd.read_csv( params['fname_uninormals'] )
+    
+    sns.scatterplot( x='X_1', y='X_2', hue='Y', data=data,
+                  palette=['b','k'] )
+    
+    fig = plt.figure()
+    ax  = fig.add_subplot(111, projection='3d')
+    
+    mask = data['Y'] == -1
+    ax.scatter( data['X_1'][ mask], data['X_2'][ mask], data['Y'][ mask], color='b' )
+    ax.scatter( data['X_1'][~mask], data['X_2'][~mask], data['Y'][~mask], color='k' )
+    
+    ax.view_init(azim=-90, elev=90)
+    ax.set_xlabel('X_1')
+    ax.set_ylabel('X_2')
+    ax.set_zlabel('Y')
+    
+    point  = np.array([1, 0, -1])
+    normal = np.array([1, -1, 2])
+    
+    d = -point.dot(normal)
+    
+    xx, yy = np.meshgrid( np.linspace( data['X_1'].min(),data['X_1'].max(),15 ),
+                      np.linspace( data['X_2'].min(),data['X_2'].max(),15 )  )
+    
+    z = (-normal[0] * xx - normal[1] * yy - d) / normal[2]
+    
+    
+    ax.plot_surface( xx, yy, z, cmap='inferno', facecolors=plt.cm.inferno(  (z - z.min() )/( z-z.min() ).max()  ), alpha=.4 )
+    
+    plt.show()
+    
+    pdb.set_trace()
+
+
+
+
 if __name__ == '__main__':
     PATH             = '/home/omarpr/git/machine_learning/data/'
     fname_uninormals = 'CNIB 2020 TWO UNIV NORMALS.csv'
+    fname_binormals  = 'CNIB 2020 TWO BIV NORMALS.csv'
     
-    main( fname_uninormals=PATH+fname_uninormals  )
+    #main( fname_uninormals=PATH+fname_uninormals  )
+    _3d(fname_uninormals=PATH+fname_binormals)
