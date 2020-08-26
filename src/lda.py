@@ -19,7 +19,7 @@ plt.style.use({  'figure.figsize'    :(12,6),
                  'ytick.major.width' :True, 
                  'lines.linewidth'   :2.5   })
 
-def pseudo_inv (X: np.array, Y: np.array)->np.array:
+def c->np.array:
     """
       Compute the pseudoinverse matrix for regression/classification
         -> pinv = (X^T X)^-1 X^T y
@@ -47,7 +47,7 @@ def extend_x(X: np.array)->np.array:
     """
     ones = np.ones( X.shape[0] )[:,np.newaxis]
     
-    return np.concatenate( (X,ones), axis=-1 )
+    return np.concatenate( (X,ones), axis=-1 ).copy()
 
 def plot_varrows( x,y1,y2,alpha=1,color='black' ):
     for i,j,k in zip( x,y1,y2 ):
@@ -137,12 +137,10 @@ def empiric_decision(X,Y,lines,thre,signs):
     print(np.array(Y).T)
 
 def pseudoinverse_train(X,Y,N):
-    index = np.arange( X.shape[1] )
-    np.random.shuffle(index)
+    X_ext = extend_x(X)
+    W     = pseudo_inv(X, Y)
     
-    pdb.set_trace()
-    
-    X_Train = X.T[ index[:] ]
+    return W.copy()
 
 def main( **params ):
     lines = np.array([ [-0.2  , 0.9  ],
@@ -164,11 +162,25 @@ def main( **params ):
     X     = data['X'].values[:,np.newaxis]
     Y     = data['Y'].values[:,np.newaxis]
     
-    empiric_decision(X,Y,lines,[.5, .1, .3, -0.15, 0], [0,0,0,-1,-1])
+    #empiric_decision(X,Y,lines,[.5, .1, .3, -0.15, 0], [0,0,0,-1,-1])
     
+    N     = 40
+    P     = X.shape[0]-N
+    index = np.arange( X.shape[0] ); np.random.shuffle(index)
+    
+    X_Train, Y_Train = X_ext[ index[  :N] ], Y[ index[  :N] ]
+    X_Test , Y_Test  = Y    [ index[-P: ] ], Y[ index[-P: ] ]
+    
+    W = pseudoinverse_train(X,Y,N)
     
     pdb.set_trace()
-    pseudoinverse_train(X,Y)
+    
+    
+    
+    
+    
+    ecs = ["$$y(x) = %.1fx %+ .1f$$"%(tuple(i)) for i in lines]
+    for e in ecs:
         print(e)
     
     
