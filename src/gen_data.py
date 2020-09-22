@@ -77,8 +77,8 @@ def setup(fname,case):
                 M2=M_C2, S2=S_C2, N2=N_C2 )
     
     elif case=='two_univariate_normals':
-        m1,s1,n1 = 1, .7  , 30
-        m2,s2,n2 = 3, .5, 30
+        m1,s1,n1 = 1, .7  , 35
+        m2,s2,n2 = 2.5, .5, 35
         
         main( fname+'TWO UNIV NORMALS.csv',
                 two_univariate_normals,
@@ -91,5 +91,6 @@ if __name__ == '__main__':
     PATH   = '/home/omarpr/git/machine_learning/data/'
     prefix = 'CNIB 2020 '
     case   = 'two_bivariate_normals'
+    case   = 'two_univariate_normals'
     
     setup( PATH+prefix, case=case )
